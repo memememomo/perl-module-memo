@@ -1,0 +1,48 @@
+#! /usr/bin/perl
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+use Pod::Usage;
+use Server::Starter qw(start_server restart_server);
+
+my %opts = (
+    port => [],
+    path => [],
+);
+
+GetOptions(
+    map {
+        $_ => sub {
+            my $name = (split '=', $_, 2)[0];
+            $name =~ s/-/_/g;
+            $opts{$name} ||= undef;
+            ref($opts{$name}) ? $opts{$name} : \$opts{$name};
+        },
+    }
+) or exit 1;
+pod2usage(
+    -exitval => 0, # exit関数に渡す値
+    -verbose => 1,
+) if $opts{help};
+if ($opts{version}) {
+    print "$Server::Starter::VERSION\n";
+    exit 0;
+}
+
+if ($opts{restart}) {
+    restart_server(%opts);
+    exit 0;
+}
+
+# validate options
+die "server program not specified\n"
+    unless @ARGV;
+
+start_server(
+    %opts,
+    exec => \@ARGV,
+);
+
+
