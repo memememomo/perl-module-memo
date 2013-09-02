@@ -387,12 +387,16 @@ sub _start_worker {
         }
 
         ## ここからは親プロセス
+
+        # interval秒だけ待って、新しい子プロセスがエラー終了していないかどうかを確認する
         print STDERR "starting new worker $pid\n";
         sleep $opts->{interval};
         if ((grep { $_ ne 'HUP' } @signals_received)
                 || waitpid($pid, WNOHANG) <= 0) {
             last;
         }
+
+        # エラー終了していたら再度実行
         print STDERR "new worker $pid seems to have failed to start, exit status:$?\n";
     }
 }
